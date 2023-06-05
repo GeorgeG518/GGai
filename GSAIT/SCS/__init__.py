@@ -1,1 +1,1 @@
-print("Hello from __init__.py")
+print("Hello from SCS/__init__.py")
