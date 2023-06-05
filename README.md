@@ -1,4 +1,4 @@
-# GGSAIT: George Gannon's Simple Artificial Intelligence Toolkit
+# GSAIT: George's Simple Artificial Intelligence Toolkit
 
 First thing is first, I am a covert narcissist so of course I have to have my
 name in the acronym. I will come up with a better name eventually.
