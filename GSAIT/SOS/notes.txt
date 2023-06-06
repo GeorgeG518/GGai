@@ -1,0 +1,26 @@
+XML Based
+Need to specify:
+
+    Optimization method
+        Simulated Annealing
+        Gradient Descent
+        Random Walk
+        Greedy Search
+
+        # NEED TO BE IMPLEMENT
+        Genetic Algorithm
+        Pattern Search
+
+    Control Variables
+        Name (bookkeeping) initial value Bounds [inclusive]
+    
+    Objective Function
+        Python class implementing:
+            Evaluate function (required)
+            pre_process
+            post_process
+
+        Gradient method:
+            Standard
+            Custom
+
