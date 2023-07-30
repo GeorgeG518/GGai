@@ -44,7 +44,7 @@ class objective_function():
         Required by the user to evaluate. Preferably needs to be something that can be evaluate 
         fast.
         """
-        print("You must implement an evaluate function in a class that inherits from objective_function")
+        raise NotImplementedError("You must implement an evaluate function in a class that inherits from objective_function")
 
     def update(self,new_point):
         """

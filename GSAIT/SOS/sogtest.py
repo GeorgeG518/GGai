@@ -1,5 +1,4 @@
 import objective_function
-from SumofGaussians import SumofGaussians
 import numpy as np
 from sos_input import sos_input
 class custom_func(objective_function.objective_function):
