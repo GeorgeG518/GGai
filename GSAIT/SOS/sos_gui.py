@@ -6,10 +6,11 @@ import sys
 
 import pandas as pd
 from collections import OrderedDict
+from sos_input import sos_input
 
 class sos_gui(QWidget):
     def __init__(self):
-        super().__init__()
+        super().__init__(objectName="SOS_input")
         self.title = "SOS Input File GUI"
         self.optimization_methods=["Gradient-Ascent","Simulated Annealing", "Random Walk"]
         self.main_layout=None
@@ -20,12 +21,15 @@ class sos_gui(QWidget):
     def createLayout(self):
         self.main_layout = QVBoxLayout()
         self.write_input=QPushButton("Write Input File")
+        self.write_input.clicked.connect(self.serialize_gui)
         self.make_rows()
         [self.main_layout.addWidget(x) for x in self.rows]
 
         self.main_layout.addWidget(self.write_input)
         self.setLayout(self.main_layout)
-        self.parse_inputs()
+        a=sos_input()
+        a.convert_to_dict(self)
+        print(a.sos_dict)
 
     def startUI(self):
         self.setWindowTitle(self.title)
@@ -33,34 +37,27 @@ class sos_gui(QWidget):
 
     def make_rows(self):
         self.rows=[]
-        self.rows.append(row("Optimization Algorithm", QComboBox() ,
-                        dict_repr="optimization_method", 
+        self.rows.append(row("Optimization Algorithm", QComboBox(objectName="optimization_method"), 
                         data=self.optimization_methods))
-        self.rows.append(row("Gradient Method", QComboBox() ,
-                        dict_repr="gradient_method", 
+        self.rows.append(row("Gradient Method", QComboBox(objectName="gradient_method") ,
                         data=["Standard","Custom"]))     
         # Need a handle on this
         self.rows.append(control_variable_widget(self.control_variable_count))
-        print(self.rows)
 
-    def parse_inputs(self):
-        for each in self.rows:
-            if isinstance(each, row):
-                print(each.dict_repr)
-                print(each.widget)
-
+    def serialize_gui(self):
+        sos_input.convert_to_dict(self)
 class control_variable_widget(QWidget):
     def __init__(self, count):
         super().__init__()
         main=QVBoxLayout()
-        self.control_var_spinner=row("Control Variable Count",QSpinBox(),dict_repr="num_control_vars",data=count)
+        self.control_var_spinner=row("Control Variable Count",QSpinBox(objectName="num_control_vars"),data=count)
         self.control_var_spinner.widget.valueChanged.connect(self.control_var_spinner_changed)
         main.addWidget(self.control_var_spinner)
         self.cvbox = QGroupBox("Control Variables")
         main.addWidget(self.cvbox)
         cvboxlayout=QVBoxLayout()
 
-        self.table = QTableView()
+        self.table = QTableView(objectName="control_vars")
         self.model = control_variable_table(count)
         self.table.setModel(self.model)
         cvboxlayout.addWidget(self.table)
@@ -71,6 +68,30 @@ class control_variable_widget(QWidget):
         print(self.control_var_spinner.widget.value())
         self.table.setModel(control_variable_table(self.control_var_spinner.widget.value()))
 
+class row(QWidget):
+    """
+    Abstract class that represents a label + some sort of widget
+    """
+    def __init__(self, labeltxt, widget, dict_repr=[""], data=None):
+        super().__init__(objectName=widget.objectName())
+        self.leftandright = QHBoxLayout()
+        self.label = QLabel(self)
+        self.label.setText(labeltxt)
+        self.widget = widget
+        self.dict_repr = dict_repr if isinstance(dict_repr,list) else [dict_repr]
+
+        self.leftandright.addWidget(self.label)
+        if isinstance(data,list):
+            self.set_choices(self.widget,data)
+        elif isinstance(data,int):
+            self.widget.setMinimum(1)
+            self.widget.setValue(data)
+
+        self.leftandright.addWidget(self.widget)
+        self.setLayout(self.leftandright)
+
+    def set_choices(self, each, items):
+        each.addItems(items)
 class control_variable_table(QtCore.QAbstractTableModel):
     def __init__(self,count,data=[]):
         super(control_variable_table, self).__init__()
@@ -100,12 +121,13 @@ class control_variable_table(QtCore.QAbstractTableModel):
             control_variable_table.numcvs=count
         elif count < control_variable_table.numcvs:
             # lose data here
-            print(retdf)
+
             colstoret=[f"CV{i}" for i in range(count)]
 
-            retdf=retdf[colstoret]
-            
+            retdf=retdf[colstoret]    
+  
         return retdf
+
     def flags(self, index):
         return Qt.ItemIsSelectable|Qt.ItemIsEnabled|Qt.ItemIsEditable
 
@@ -135,32 +157,6 @@ class control_variable_table(QtCore.QAbstractTableModel):
                 return str(self._data.columns[section])
             if orientation == Qt.Vertical:
                 return str(self._data.index[section])     
-
-class row(QWidget):
-    """
-    Abstract class that represents a label + some sort of widget
-    """
-    def __init__(self, labeltxt, widget, dict_repr=[""], data=None):
-        super().__init__()
-        self.leftandright = QHBoxLayout()
-        self.label = QLabel(self)
-        self.label.setText(labeltxt)
-        self.widget = widget
-        self.dict_repr = dict_repr if isinstance(dict_repr,list) else [dict_repr]
-
-        self.leftandright.addWidget(self.label)
-        if isinstance(data,list):
-            self.set_choices(self.widget,data)
-        elif isinstance(data,int):
-            self.widget.setMinimum(1)
-            self.widget.setValue(data)
-
-        self.leftandright.addWidget(self.widget)
-        self.setLayout(self.leftandright)
-
-    def set_choices(self, each, items):
-        each.addItems(items)
-
 if __name__=='__main__':
     app = QApplication(sys.argv)
     ex = sos_gui()
