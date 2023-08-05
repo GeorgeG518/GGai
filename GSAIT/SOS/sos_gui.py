@@ -7,8 +7,9 @@ import sys
 import pandas as pd
 from collections import OrderedDict
 from sos_input import sos_input
+from serialize_class import serialize_class
 
-class sos_gui(QWidget):
+class sos_gui(serialize_class):
     def __init__(self):
         super().__init__(objectName="SOS_input")
         self.title = "SOS Input File GUI"
@@ -19,7 +20,7 @@ class sos_gui(QWidget):
         self.startUI()
 
     def createLayout(self):
-        self.main_layout = QVBoxLayout()
+        self.main_layout = QVBoxLayout(objectName="solver_settings")
         self.write_input=QPushButton("Write Input File")
         self.write_input.clicked.connect(self.serialize_gui)
         self.make_rows()
@@ -28,8 +29,8 @@ class sos_gui(QWidget):
         self.main_layout.addWidget(self.write_input)
         self.setLayout(self.main_layout)
         a=sos_input()
-        a.convert_to_dict(self)
-        print(a.sos_dict)
+        dickt=a.convert_to_dict(self)
+        print(dickt)
 
     def startUI(self):
         self.setWindowTitle(self.title)
@@ -45,15 +46,15 @@ class sos_gui(QWidget):
         self.rows.append(control_variable_widget(self.control_variable_count))
 
     def serialize_gui(self):
-        sos_input.convert_to_dict(self)
-class control_variable_widget(QWidget):
+        sos_input.convert_to_dict(self.main_layout)
+class control_variable_widget(serialize_class):
     def __init__(self, count):
-        super().__init__()
+        super().__init__(objectName="control_variables")
         main=QVBoxLayout()
         self.control_var_spinner=row("Control Variable Count",QSpinBox(objectName="num_control_vars"),data=count)
         self.control_var_spinner.widget.valueChanged.connect(self.control_var_spinner_changed)
         main.addWidget(self.control_var_spinner)
-        self.cvbox = QGroupBox("Control Variables")
+        self.cvbox = QGroupBox("Control Variables", objectName="controls")
         main.addWidget(self.cvbox)
         cvboxlayout=QVBoxLayout()
 
@@ -68,7 +69,7 @@ class control_variable_widget(QWidget):
         print(self.control_var_spinner.widget.value())
         self.table.setModel(control_variable_table(self.control_var_spinner.widget.value()))
 
-class row(QWidget):
+class row(serialize_class):
     """
     Abstract class that represents a label + some sort of widget
     """
@@ -108,9 +109,7 @@ class control_variable_table(QtCore.QAbstractTableModel):
             self._data = control_variable_table.df # this is the allocated pandas df, not necessarily the one being shown
         else:
             showdf=self._update_table(count)
-            self._data=showdf
-
-        
+            self._data=showdf 
 
     def _update_table(self,count):
         retdf=self.df
