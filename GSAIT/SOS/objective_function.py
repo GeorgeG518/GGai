@@ -63,6 +63,7 @@ class gradient_method(optimization_method):
         arr_partial_derivatives=np.zeros(self.control_variable_count,dtype=np.float64)
         if point is None: 
             point=self.current_value
+        # TODO: need to cache points, would make sense
         current_evaluated=self.evaluate(point)
         for each in range(point.shape[0]):
             copy=np.copy(point)

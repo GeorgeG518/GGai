@@ -17,18 +17,35 @@ class sos_input():
     def read(self, filename):
         pass
 
-    
-    def convert_to_dict(self,gui):
+    @staticmethod
+    def convert_to_dict(gui):
         ret_dict={}
-        for each in gui.findChildren(QWidget):
-            if isinstance(each, serialize_class) and each.serialize: 
-                print(each)
-                print("yesy",each.layout())
-                ret_dict[gui.layout().objectName()]=self.convert_to_dict(each)
-            elif isinstance(each, QComboBox) or isinstance(each, QSpinBox) or isinstance(each,QTableView):
-                print(f"{str(each.objectName())}: {sos_input.get_value(each)}")
-                ret_dict[each.objectName()]=sos_input.get_value(each)
+        items={}
+        for widget in gui.findChildren(QWidget):
+            if isinstance(widget, serialize_class) and widget.serialize:
+                for each in widget.children():
+                    if isinstance(each, QLabel) :
+                        continue
+                    if isinstance(each, QComboBox) or isinstance(each, QSpinBox) :
+                        items[each.objectName()]=sos_input.get_value(each)
+                    elif isinstance(each, QGroupBox) :
+                        items[each.objectName()]=sos_input.convert_group_box(each)
+                    else:
+                        print("yes", each)
+
+        ret_dict[gui.layout().objectName()]=items
         return ret_dict
+
+    @staticmethod
+    def convert_group_box(box):
+        #for widget in box.findChildren(QWidget):
+        ret_dict={}
+        print(box.children())
+        for widget in box.children():
+            if isinstance(widget, QTableView) :
+                ret_dict[widget.objectName()]=widget.model()._data
+        return ret_dict
+
 
     def get_value(gui_element):
         """

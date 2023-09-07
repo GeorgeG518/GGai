@@ -28,9 +28,6 @@ class sos_gui(serialize_class):
 
         self.main_layout.addWidget(self.write_input)
         self.setLayout(self.main_layout)
-        a=sos_input()
-        dickt=a.convert_to_dict(self)
-        print(dickt)
 
     def startUI(self):
         self.setWindowTitle(self.title)
@@ -46,7 +43,8 @@ class sos_gui(serialize_class):
         self.rows.append(control_variable_widget(self.control_variable_count))
 
     def serialize_gui(self):
-        sos_input.convert_to_dict(self.main_layout)
+        dickt=sos_input.convert_to_dict(self)
+        print(dickt)
 class control_variable_widget(serialize_class):
     def __init__(self, count):
         super().__init__(objectName="control_variables")
@@ -60,6 +58,7 @@ class control_variable_widget(serialize_class):
 
         self.table = QTableView(objectName="control_vars")
         self.model = control_variable_table(count)
+
         self.table.setModel(self.model)
         cvboxlayout.addWidget(self.table)
         self.cvbox.setLayout(cvboxlayout)
@@ -93,9 +92,9 @@ class row(serialize_class):
 
     def set_choices(self, each, items):
         each.addItems(items)
-class control_variable_table(QtCore.QAbstractTableModel):
+class control_variable_table(QtCore.QAbstractTableModel, serialize_class):
     def __init__(self,count,data=[]):
-        super(control_variable_table, self).__init__()
+        super(control_variable_table, self).__init__(objectName="table")
         self.rows=["Name", "Min", "Initial Value", "Max"] # wont change
 
         self.INITIAL_NUMCVS=count
@@ -112,9 +111,10 @@ class control_variable_table(QtCore.QAbstractTableModel):
             self._data=showdf 
 
     def _update_table(self,count):
-        retdf=self.df
+        retdf=control_variable_table.df
         if count > control_variable_table.numcvs:
             newcols=[f"CV{control_variable_table.numcvs+i}" for i in range(count-control_variable_table.numcvs)]
+            print(newcols)
             for i,each in enumerate(newcols):
                 retdf[each]=[f"CV{control_variable_table.numcvs+i}",0,0,0]
             control_variable_table.numcvs=count
